@@ -312,7 +312,7 @@ export function ScheduleBoard() {
                 className={fieldClassName}
                 value={notes}
                 maxLength={240}
-                placeholder="Place, weather, what to bring"
+                placeholder="Optional"
                 onChange={(event) => setNotes(event.target.value)}
               />
             </div>

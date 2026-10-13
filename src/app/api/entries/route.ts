@@ -1,8 +1,6 @@
 import { connection } from "next/server";
 import { addEntry, listEntries, validateNewEntry } from "@/lib/store";
 
-export const runtime = "nodejs";
-
 export async function GET() {
   await connection();
   try {

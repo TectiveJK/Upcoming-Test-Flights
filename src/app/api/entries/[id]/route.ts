@@ -1,7 +1,5 @@
 import { removeEntry } from "@/lib/store";
 
-export const runtime = "nodejs";
-
 export async function DELETE(
   _request: Request,
   context: RouteContext<"/api/entries/[id]">,
