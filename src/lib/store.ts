@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { watch, type FSWatcher } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -14,16 +15,62 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_PATH = path.join(DATA_DIR, "entries.json");
 
 type FileShape = { entries: Entry[] };
+type Listener = (entries: Entry[]) => void;
 
-let chain: Promise<unknown> = Promise.resolve();
+type LiveHub = {
+  chain: Promise<unknown>;
+  listeners: Set<Listener>;
+  watcherStarted: boolean;
+  watcher: FSWatcher | null;
+  watchTimer: ReturnType<typeof setTimeout> | null;
+};
+
+const hub: LiveHub = ((globalThis as { __flightBoardHub?: LiveHub }).__flightBoardHub ??= {
+  chain: Promise.resolve(),
+  listeners: new Set(),
+  watcherStarted: false,
+  watcher: null,
+  watchTimer: null,
+});
 
 function enqueue<T>(task: () => Promise<T>): Promise<T> {
-  const run = chain.then(task, task);
-  chain = run.then(
+  const run = hub.chain.then(task, task);
+  hub.chain = run.then(
     () => undefined,
     () => undefined,
   );
   return run;
+}
+
+function publish(entries: Entry[]) {
+  const snapshot = entries.map((entry) => ({ ...entry }));
+  for (const listener of hub.listeners) {
+    listener(snapshot);
+  }
+}
+
+function ensureWatcher() {
+  if (hub.watcherStarted) return;
+  hub.watcherStarted = true;
+  void mkdir(DATA_DIR, { recursive: true }).then(() => {
+    if (hub.watcher) return;
+    hub.watcher = watch(DATA_DIR, (_event, filename) => {
+      const name = filename?.toString();
+      if (name && name !== "entries.json") return;
+      if (hub.watchTimer) clearTimeout(hub.watchTimer);
+      hub.watchTimer = setTimeout(() => {
+        void listEntries().then(publish).catch(() => undefined);
+      }, 40);
+    });
+  });
+}
+
+export function subscribe(listener: Listener): () => void {
+  ensureWatcher();
+  hub.listeners.add(listener);
+  return () => {
+    hub.listeners.delete(listener);
+  };
 }
 
 function isKind(value: unknown): value is Kind {
@@ -200,6 +247,7 @@ export function addEntry(input: NewEntryInput): Promise<Entry> {
     };
     shape.entries.push(entry);
     await writeShape(shape);
+    publish(shape.entries);
     return entry;
   });
 }
@@ -211,6 +259,7 @@ export function removeEntry(id: string): Promise<boolean> {
     if (next.length === shape.entries.length) return false;
     shape.entries = next;
     await writeShape(shape);
+    publish(shape.entries);
     return true;
   });
 }

@@ -11,7 +11,7 @@ Everyone who can open the page uses the same list. There are no accounts.
 3. Add a flight or test with a name, date, and time. Who and a short note are optional.
 4. Remove an entry when it is done, cancelled, or was only an example. Removal asks you to confirm first.
 
-The board refreshes on its own every few seconds, and when you come back to the tab. **Refresh** loads the latest list immediately.
+While the page is open it stays connected. When anyone adds or removes an entry, every open board updates immediately. A **Live** mark under Planned means that connection is up. If it drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
 
 The first time the app starts, it adds a few example entries so the layout is easy to read. Remove them before using the board for real plans.
 
@@ -47,7 +47,7 @@ That serves the same address.
 
 Entries are stored in `data/entries.json` on the computer that runs the app. That file is created automatically and is not part of the git history.
 
-Anyone who opens this app talks to that one file. Add and remove update it for the whole team.
+Anyone who opens this app talks to that one file. Add and remove update it for the whole team, including people who already have the page open.
 
 Run **one** copy, on a computer the team can reach, and share that address. If each person runs their own copy, each copy has its own list.
 

@@ -44,6 +44,7 @@ export function ScheduleBoard() {
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [clock, setClock] = useState<Date | null>(null);
+  const [connected, setConnected] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const busy = useRef(0);
@@ -103,18 +104,58 @@ export function ScheduleBoard() {
   }, [refresh]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      void refresh("poll");
-    }, 15000);
+    let source: EventSource | null = null;
+    let poll: number | null = null;
+
+    const stopPoll = () => {
+      if (poll !== null) {
+        window.clearInterval(poll);
+        poll = null;
+      }
+    };
+
+    const startPoll = () => {
+      if (poll !== null) return;
+      poll = window.setInterval(() => {
+        void refresh("poll");
+      }, 4000);
+    };
+
+    source = new EventSource("/api/live");
+    source.onopen = () => {
+      setConnected(true);
+      stopPoll();
+    };
+    source.onmessage = (event) => {
+      try {
+        const body = JSON.parse(event.data) as { entries?: Entry[] };
+        if (!body.entries) return;
+        applyEntries(body.entries, false);
+        setConnected(true);
+        stopPoll();
+      } catch {
+        setConnected(false);
+        startPoll();
+      }
+    };
+    source.onerror = () => {
+      setConnected(false);
+      startPoll();
+    };
+
     const onVisible = () => {
-      if (document.visibilityState === "visible") void refresh("poll");
+      if (document.visibilityState === "visible" && source?.readyState !== EventSource.OPEN) {
+        void refresh("poll");
+      }
     };
     document.addEventListener("visibilitychange", onVisible);
+
     return () => {
-      window.clearInterval(interval);
+      stopPoll();
+      source?.close();
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [refresh]);
+  }, [applyEntries, refresh]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -354,6 +395,17 @@ export function ScheduleBoard() {
                     ? "1 coming up."
                     : `${comingUp} coming up.`
                 : "The next few days, then anything further out."}
+              <span className="mx-1.5">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className={cn(
+                    "size-2 rounded-full",
+                    connected ? "bg-primary" : "bg-destructive",
+                  )}
+                  aria-hidden="true"
+                />
+                {connected ? "Live" : "Reconnecting"}
+              </span>
             </p>
           </div>
           <Button

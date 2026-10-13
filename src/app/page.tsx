@@ -13,7 +13,7 @@ export default function HomePage() {
         <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
           See what is planned, when it happens, and what is coming up next.
           Anyone on the team can add a flight or test, or remove one when it
-          is finished.
+          is finished. Every open board updates at the same time.
         </p>
       </header>
       <ScheduleBoard />
