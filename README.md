@@ -4,19 +4,60 @@ A shared board for the flights and tests planned over the next few days. Open it
 
 Everyone who opens the page uses the same list. There are no accounts. Share the link only with the team: anyone who has it can add and remove entries.
 
-## Shared link
+## Keep the board up
 
-Open the live board here and send this address to the team:
+One computer runs the board. That computer stays powered on. Phones and laptops only open the page, and they all share the list on that computer.
+
+The link to share is that computer’s address, on port 4317:
+
+`http://<that-computer>:4317`
+
+That address stays up while the computer is on. After you enable the service below, a reboot starts the board again on the same address.
+
+On the computer that will host the board (Node.js 20 or newer, and `npm` on the system path):
+
+```bash
+sudo mkdir -p /opt/upcoming-flights
+sudo chown "$USER" /opt/upcoming-flights
+git clone https://github.com/TectiveJK/Upcoming-Test-Flights.git /opt/upcoming-flights
+cd /opt/upcoming-flights
+npm install
+npm run build
+```
+
+Set `User=` in `deploy/upcoming-flights.service` to the output of `whoami`, then enable the service:
+
+```bash
+sudo cp deploy/upcoming-flights.service /etc/systemd/system/upcoming-flights.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now upcoming-flights
+```
+
+From another machine on the same network, open `http://<that-computer>:4317`. Send that address to the team. If other machines cannot open it, allow TCP port 4317 on the host firewall.
+
+People away from the office need a company hostname that points at this computer. The board listens on port 4317.
+
+Check that it is running:
+
+```bash
+systemctl status upcoming-flights
+```
+
+The list is stored in `/opt/upcoming-flights/data/entries.json` on that computer. Run this one copy. A second copy keeps a separate list.
+
+## Preview address
+
+This session also publishes a temporary address:
 
 [https://volt-wild-modems-watched.trycloudflare.com](https://volt-wild-modems-watched.trycloudflare.com)
 
-People who already have that page open see an add or a removal immediately. A **Live** mark under Planned means the page is connected.
+It is open while this session’s computer is still running. When that computer stops, Cloudflare drops the name. The same name cannot be started again. Use the always-on computer’s address as the link the team keeps.
 
-The link stays up while this copy of the board is running. Phones and computers that open it share one list.
+People who already have the page open see an add or a removal immediately. A **Live** mark under Planned means the page is connected.
 
 ## Install it on a phone
 
-Use the shared link above. Do not install from an app store, and do not use a localhost address on the phone.
+Use the always-on address from above. Do not install from an app store.
 
 ### iPhone
 
@@ -57,7 +98,7 @@ Days are grouped like this:
 
 Times use a 24-hour clock on the list.
 
-## Run it locally
+## Run a copy on your own computer
 
 Requires Node.js 20 or newer.
 
@@ -66,16 +107,16 @@ npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:4317](http://127.0.0.1:4317). That address works on the computer running the app. It is not the link to send to other people.
+Open [http://127.0.0.1:4317](http://127.0.0.1:4317). That address works on the computer running the app. It is a private copy unless other people open that same computer’s address.
 
-To run the production build:
+To run the production build in the foreground:
 
 ```bash
 npm run build
 npm start
 ```
 
-That serves the same local address. Use one running copy for the whole team. Phones and laptops that open the shared link above share that copy.
+For the link the team keeps, use [Keep the board up](#keep-the-board-up) so the process comes back after a reboot.
 
 ## How sharing works
 
