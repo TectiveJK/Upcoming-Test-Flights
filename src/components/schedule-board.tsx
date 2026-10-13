@@ -390,10 +390,10 @@ export function ScheduleBoard() {
             <p className="mt-1 text-sm text-muted-foreground">
               {load.status === "ready" && clock
                 ? comingUp === 0
-                  ? "Nothing is still ahead."
+                  ? "Nothing is still ahead"
                   : comingUp === 1
-                    ? "1 coming up."
-                    : `${comingUp} coming up.`
+                    ? "1 coming up"
+                    : `${comingUp} coming up`
                 : "The next few days, then anything further out."}
               <span className="mx-1.5">·</span>
               <span className="inline-flex items-center gap-1.5">
