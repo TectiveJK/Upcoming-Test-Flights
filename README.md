@@ -1,8 +1,8 @@
 # Upcoming flights & tests
 
-A shared board for the flights and tests planned over the next few days. Open it, see what is coming up, add anything the team should not forget, and remove an entry when it is finished.
+A shared board for the flights and tests planned over the next few days. Open it, see what is coming up, add anything the team should not forget, change a plan, and remove an entry when it is finished.
 
-Everyone who opens the page uses the same list. There are no accounts. Share the link only with the team: anyone who has it can add and remove entries.
+Everyone who opens the page uses the same list. There are no accounts. Share the link only with the team: anyone who has it can add, edit, and remove entries.
 
 ## Live link
 
@@ -12,7 +12,7 @@ Open the board here and send this address to the team:
 
 This address stays online. It does not depend on a laptop, an office PC, or this coding session. Phones and computers that open it share one list, saved on the web.
 
-People who already have the page open see an add or a removal within a few seconds. A **Live** mark under Planned means the page is connected.
+People who already have the page open see an add, an edit, or a removal within a few seconds. A **Live** mark under Planned means the page is connected.
 
 [https://tectivejk.github.io/Upcoming-Test-Flights/](https://tectivejk.github.io/Upcoming-Test-Flights/) opens the same board.
 
@@ -45,7 +45,7 @@ The same install steps are at the bottom of the board, under **Keep it on your p
 1. Open the page.
 2. Read **Next up**, then the days under **Planned**.
 3. Add a flight or test with a name, date, and time. Who and a short note are optional.
-4. Use **Edit** on a row to change its date, time, or description.
+4. Use **Edit** beside a flight or test to change its date, time, or description. The note under it can be changed there too. **Save** updates the shared list. **Cancel** leaves the row as it was.
 5. Remove an entry when it is done or cancelled. Removal asks you to confirm first.
 
 While the page is open it keeps checking for changes. When anyone adds, edits, or removes an entry, every open board updates. If the connection drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
