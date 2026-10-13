@@ -45,6 +45,8 @@ export function ScheduleBoard() {
   const [saving, setSaving] = useState(false);
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [savingEditId, setSavingEditId] = useState<string | null>(null);
   const [clock, setClock] = useState<Date | null>(null);
   const [connected, setConnected] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -284,6 +286,102 @@ export function ScheduleBoard() {
     } finally {
       busy.current = Math.max(0, busy.current - 1);
       setRemovingId(null);
+    }
+  }
+
+  function onStartEdit(id: string) {
+    setPendingRemoveId(null);
+    setFormError("");
+    setEditingId(id);
+  }
+
+  async function onSaveEdit(
+    entry: Entry,
+    draft: { title: string; date: string; time: string; notes: string },
+  ): Promise<string | null> {
+    setFormError("");
+    setStatusMessage("");
+    const result = validateNewEntry({
+      kind: entry.kind,
+      title: draft.title,
+      date: draft.date,
+      time: draft.time,
+      owner: entry.owner,
+      notes: draft.notes,
+    });
+    if (!result.ok) return result.error;
+
+    setSavingEditId(entry.id);
+    busy.current += 1;
+    try {
+      const nextEntry: Entry = {
+        ...entry,
+        title: result.value.title,
+        date: result.value.date,
+        time: result.value.time,
+        notes: result.value.notes,
+      };
+      if (remoteBoardUrl()) {
+        const entries = await mutateRemoteBoard((current) => {
+          if (!current.some((item) => item.id === entry.id)) {
+            throw new Error("That entry is already gone.");
+          }
+          return current.map((item) =>
+            item.id === entry.id
+              ? {
+                  ...item,
+                  title: nextEntry.title,
+                  date: nextEntry.date,
+                  time: nextEntry.time,
+                  notes: nextEntry.notes,
+                }
+              : item,
+          );
+        });
+        applyEntries(entries, false);
+      } else {
+        const response = await fetch(`/api/entries/${entry.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: entry.kind,
+            title: draft.title,
+            date: draft.date,
+            time: draft.time,
+            owner: entry.owner,
+            notes: draft.notes,
+          }),
+        });
+        const body = (await response.json().catch(() => ({}))) as {
+          entry?: Entry;
+          error?: string;
+        };
+        if (!response.ok || !body.entry) {
+          return body.error || "That entry could not be saved.";
+        }
+        setLoad((current) => {
+          if (current.status !== "ready") return current;
+          return {
+            status: "ready",
+            stale: false,
+            entries: current.entries.map((item) =>
+              item.id === body.entry!.id ? body.entry! : item,
+            ),
+          };
+        });
+      }
+      setEditingId(null);
+      setStatusMessage(`${nextEntry.title} updated for everyone.`);
+      listRef.current?.focus();
+      return null;
+    } catch (error) {
+      if (error instanceof Error && error.message === "That entry is already gone.") {
+        return error.message;
+      }
+      return "That entry could not be saved. Try again.";
+    } finally {
+      busy.current = Math.max(0, busy.current - 1);
+      setSavingEditId(null);
     }
   }
 
@@ -536,6 +634,11 @@ export function ScheduleBoard() {
                   onAskRemove={setPendingRemoveId}
                   onCancelRemove={() => setPendingRemoveId(null)}
                   onRemove={onRemove}
+                  editingId={editingId}
+                  savingEditId={savingEditId}
+                  onStartEdit={onStartEdit}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSaveEdit={onSaveEdit}
                 />
               ) : null}
               {grouped.soon.length > 0 ? (
@@ -552,6 +655,11 @@ export function ScheduleBoard() {
                   onAskRemove={setPendingRemoveId}
                   onCancelRemove={() => setPendingRemoveId(null)}
                   onRemove={onRemove}
+                  editingId={editingId}
+                  savingEditId={savingEditId}
+                  onStartEdit={onStartEdit}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSaveEdit={onSaveEdit}
                 />
               ) : null}
               {grouped.later.length > 0 ? (
@@ -565,6 +673,11 @@ export function ScheduleBoard() {
                   onAskRemove={setPendingRemoveId}
                   onCancelRemove={() => setPendingRemoveId(null)}
                   onRemove={onRemove}
+                  editingId={editingId}
+                  savingEditId={savingEditId}
+                  onStartEdit={onStartEdit}
+                  onCancelEdit={() => setEditingId(null)}
+                  onSaveEdit={onSaveEdit}
                 />
               ) : null}
             </div>
@@ -649,6 +762,11 @@ function DaySection({
   onAskRemove,
   onCancelRemove,
   onRemove,
+  editingId,
+  savingEditId,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
 }: {
   title?: string;
   description?: string;
@@ -659,6 +777,14 @@ function DaySection({
   onAskRemove: (id: string) => void;
   onCancelRemove: () => void;
   onRemove: (entry: Entry) => void;
+  editingId: string | null;
+  savingEditId: string | null;
+  onStartEdit: (id: string) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (
+    entry: Entry,
+    draft: { title: string; date: string; time: string; notes: string },
+  ) => Promise<string | null>;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -691,9 +817,14 @@ function DaySection({
                 passed={hasPassed(entry, now)}
                 confirming={pendingRemoveId === entry.id}
                 removing={removingId === entry.id}
+                editing={editingId === entry.id}
+                saving={savingEditId === entry.id}
                 onAskRemove={() => onAskRemove(entry.id)}
                 onCancelRemove={onCancelRemove}
                 onRemove={() => onRemove(entry)}
+                onStartEdit={() => onStartEdit(entry.id)}
+                onCancelEdit={onCancelEdit}
+                onSaveEdit={(draft) => onSaveEdit(entry, draft)}
               />
             ))}
           </ul>
@@ -708,18 +839,46 @@ function EntryRow({
   passed,
   confirming,
   removing,
+  editing,
+  saving,
   onAskRemove,
   onCancelRemove,
   onRemove,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
 }: {
   entry: Entry;
   passed: boolean;
   confirming: boolean;
   removing: boolean;
+  editing: boolean;
+  saving: boolean;
   onAskRemove: () => void;
   onCancelRemove: () => void;
   onRemove: () => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (draft: {
+    title: string;
+    date: string;
+    time: string;
+    notes: string;
+  }) => Promise<string | null>;
 }) {
+  if (editing) {
+    return (
+      <li className="border-b border-border py-4 last:border-b-0">
+        <EditForm
+          entry={entry}
+          saving={saving}
+          onCancel={onCancelEdit}
+          onSave={onSaveEdit}
+        />
+      </li>
+    );
+  }
+
   return (
     <li
       className={cn(
@@ -792,17 +951,159 @@ function EntryRow({
             </Button>
           </>
         ) : (
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-9 text-muted-foreground"
-            aria-label={`Remove ${entry.title}`}
-            onClick={onAskRemove}
-          >
-            Remove
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-9 text-muted-foreground"
+              aria-label={`Edit ${entry.title}`}
+              onClick={onStartEdit}
+            >
+              Edit
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-9 text-muted-foreground"
+              aria-label={`Remove ${entry.title}`}
+              onClick={onAskRemove}
+            >
+              Remove
+            </Button>
+          </>
         )}
       </div>
     </li>
+  );
+}
+
+function EditForm({
+  entry,
+  saving,
+  onCancel,
+  onSave,
+}: {
+  entry: Entry;
+  saving: boolean;
+  onCancel: () => void;
+  onSave: (draft: {
+    title: string;
+    date: string;
+    time: string;
+    notes: string;
+  }) => Promise<string | null>;
+}) {
+  const formId = useId();
+  const descriptionRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState(entry.title);
+  const [date, setDate] = useState(entry.date);
+  const [time, setTime] = useState(entry.time);
+  const [notes, setNotes] = useState(entry.notes);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    descriptionRef.current?.focus();
+  }, []);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    const message = await onSave({ title, date, time, notes });
+    if (message) setError(message);
+  }
+
+  return (
+    <form
+      className="flex flex-col gap-3"
+      aria-label={`Edit ${entry.title}`}
+      onSubmit={onSubmit}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !saving) onCancel();
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={cn(
+            "inline-flex rounded-md px-1.5 py-0.5 text-xs font-medium",
+            entry.kind === "flight"
+              ? "bg-flight-soft text-flight"
+              : "bg-test-soft text-test",
+          )}
+        >
+          {kindLabel(entry.kind)}
+        </span>
+        <span className="text-sm text-muted-foreground">Edit this entry</span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${formId}-date`}>Date</Label>
+          <Input
+            id={`${formId}-date`}
+            className={fieldClassName}
+            type="date"
+            value={date}
+            required
+            disabled={saving}
+            onChange={(event) => setDate(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`${formId}-time`}>Time</Label>
+          <Input
+            id={`${formId}-time`}
+            className={fieldClassName}
+            type="time"
+            value={time}
+            required
+            disabled={saving}
+            onChange={(event) => setTime(event.target.value)}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={`${formId}-description`}>Description</Label>
+        <Input
+          ref={descriptionRef}
+          id={`${formId}-description`}
+          className={fieldClassName}
+          value={title}
+          maxLength={80}
+          required
+          disabled={saving}
+          onChange={(event) => setTitle(event.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={`${formId}-notes`}>Note</Label>
+        <Input
+          id={`${formId}-notes`}
+          className={fieldClassName}
+          value={notes}
+          maxLength={240}
+          disabled={saving}
+          placeholder="Optional"
+          onChange={(event) => setNotes(event.target.value)}
+        />
+      </div>
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9"
+          disabled={saving}
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" className="h-9" disabled={saving}>
+          {saving ? "Saving…" : "Save"}
+        </Button>
+      </div>
+    </form>
   );
 }

@@ -45,9 +45,10 @@ The same install steps are at the bottom of the board, under **Keep it on your p
 1. Open the page.
 2. Read **Next up**, then the days under **Planned**.
 3. Add a flight or test with a name, date, and time. Who and a short note are optional.
-4. Remove an entry when it is done or cancelled. Removal asks you to confirm first.
+4. Use **Edit** on a row to change its date, time, or description.
+5. Remove an entry when it is done or cancelled. Removal asks you to confirm first.
 
-While the page is open it keeps checking for changes. When anyone adds or removes an entry, every open board updates. If the connection drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
+While the page is open it keeps checking for changes. When anyone adds, edits, or removes an entry, every open board updates. If the connection drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
 
 Days are grouped like this:
 
@@ -77,7 +78,7 @@ npm start
 
 ## How sharing works
 
-The live link stores the list online. Add and remove update that list for the whole team, including people who already have the page open.
+The live link stores the list online. Add, edit, and remove update that list for the whole team, including people who already have the page open.
 
 There is no login. Treat the address like an internal tool.
 

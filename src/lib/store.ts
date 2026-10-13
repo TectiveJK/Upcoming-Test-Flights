@@ -197,6 +197,26 @@ export function addEntry(input: NewEntryInput): Promise<Entry> {
   });
 }
 
+export function updateEntry(id: string, input: NewEntryInput): Promise<Entry | null> {
+  return enqueue(async () => {
+    const shape = await readFileShape();
+    const index = shape.entries.findIndex((entry) => entry.id === id);
+    if (index < 0) return null;
+    const current = shape.entries[index];
+    const updated: Entry = {
+      ...current,
+      ...input,
+      id: current.id,
+      example: current.example,
+      createdAt: current.createdAt,
+    };
+    shape.entries[index] = updated;
+    await writeShape(shape);
+    publish(shape.entries);
+    return updated;
+  });
+}
+
 export function removeEntry(id: string): Promise<boolean> {
   return enqueue(async () => {
     const shape = await readFileShape();
