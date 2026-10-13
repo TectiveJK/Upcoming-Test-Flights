@@ -13,7 +13,10 @@ function boardUrl(): string {
 }
 
 export async function readRemoteBoard(): Promise<BoardFile> {
-  const response = await fetch(`${boardUrl()}?t=${Date.now()}`, { cache: "no-store" });
+  const response = await fetch(`${boardUrl()}?t=${Date.now()}`, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(8000),
+  });
   if (!response.ok) throw new Error("The board could not be loaded.");
   const body = (await response.json()) as Partial<BoardFile>;
   if (!body || !Array.isArray(body.entries)) {
@@ -38,8 +41,16 @@ export async function mutateRemoteBoard(
       lastError = new Error("The board could not be saved.");
       continue;
     }
-    const saved = await readRemoteBoard();
-    if (JSON.stringify(saved.entries) === JSON.stringify(entries)) return saved.entries;
+    const wanted = JSON.stringify(entries);
+    for (let check = 0; check < 5; check += 1) {
+      try {
+        const saved = await readRemoteBoard();
+        if (JSON.stringify(saved.entries) === wanted) return saved.entries;
+      } catch {
+        lastError = new Error("The board could not be saved.");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
   }
   throw lastError ?? new Error("The board could not be saved.");
 }

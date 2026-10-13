@@ -322,23 +322,57 @@ export function ScheduleBoard() {
         notes: result.value.notes,
       };
       if (remoteBoardUrl()) {
-        const entries = await mutateRemoteBoard((current) => {
-          if (!current.some((item) => item.id === entry.id)) {
-            throw new Error("That entry is already gone.");
-          }
-          return current.map((item) =>
-            item.id === entry.id
-              ? {
-                  ...item,
-                  title: nextEntry.title,
-                  date: nextEntry.date,
-                  time: nextEntry.time,
-                  notes: nextEntry.notes,
-                }
-              : item,
-          );
+        setLoad((current) => {
+          if (current.status !== "ready") return current;
+          return {
+            status: "ready",
+            stale: false,
+            entries: current.entries.map((item) =>
+              item.id === entry.id ? nextEntry : item,
+            ),
+          };
         });
-        applyEntries(entries, false);
+        setEditingId(null);
+        setStatusMessage(`${nextEntry.title} updated for everyone.`);
+        try {
+          const entries = await mutateRemoteBoard((current) => {
+            if (!current.some((item) => item.id === entry.id)) {
+              throw new Error("That entry is already gone.");
+            }
+            return current.map((item) =>
+              item.id === entry.id
+                ? {
+                    ...item,
+                    title: nextEntry.title,
+                    date: nextEntry.date,
+                    time: nextEntry.time,
+                    notes: nextEntry.notes,
+                  }
+                : item,
+            );
+          });
+          applyEntries(entries, false);
+        } catch (error) {
+          const board = await readRemoteBoard().catch(() => null);
+          if (board) applyEntries(board.entries, false);
+          const saved = board?.entries.find((item) => item.id === entry.id);
+          const stored =
+            saved &&
+            saved.title === nextEntry.title &&
+            saved.date === nextEntry.date &&
+            saved.time === nextEntry.time &&
+            saved.notes === nextEntry.notes;
+          if (!stored) {
+            setStatusMessage("");
+            setFormError(
+              error instanceof Error && error.message === "That entry is already gone."
+                ? error.message
+                : "That entry could not be saved. Try again.",
+            );
+          }
+        }
+        listRef.current?.focus();
+        return null;
       } else {
         const response = await fetch(`/api/entries/${entry.id}`, {
           method: "PATCH",
