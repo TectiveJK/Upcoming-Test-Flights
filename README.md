@@ -45,11 +45,9 @@ The same install steps are at the bottom of the board, under **Keep it on your p
 1. Open the page.
 2. Read **Next up**, then the days under **Planned**.
 3. Add a flight or test with a name, date, and time. Who and a short note are optional.
-4. Remove an entry when it is done, cancelled, or was only an example. Removal asks you to confirm first.
+4. Remove an entry when it is done or cancelled. Removal asks you to confirm first.
 
 While the page is open it keeps checking for changes. When anyone adds or removes an entry, every open board updates. If the connection drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
-
-The board starts with a few example entries so the layout is easy to read. Remove them before using it for real plans.
 
 Days are grouped like this:
 

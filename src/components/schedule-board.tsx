@@ -364,7 +364,7 @@ export function ScheduleBoard() {
                 value={title}
                 maxLength={80}
                 required
-                placeholder="Pad checkout, thermal cycle…"
+                placeholder="TALON flight, motor test…"
                 onChange={(event) => setTitle(event.target.value)}
               />
             </div>

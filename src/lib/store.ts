@@ -2,13 +2,7 @@ import { randomUUID } from "node:crypto";
 import { watch, type FSWatcher } from "node:fs";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import {
-  addDays,
-  formatDateInput,
-  type Entry,
-  type Kind,
-  type NewEntryInput,
-} from "@/lib/schedule";
+import type { Entry, Kind, NewEntryInput } from "@/lib/schedule";
 
 export { validateNewEntry } from "@/lib/schedule";
 
@@ -149,66 +143,8 @@ function isEntry(value: unknown): value is Entry {
   );
 }
 
-function seedEntries(now = new Date()): Entry[] {
-  const today = formatDateInput(now);
-  const createdAt = now.toISOString();
-  const samples: Array<Omit<Entry, "id" | "example" | "createdAt">> = [
-    {
-      kind: "flight",
-      title: "Pad checkout",
-      date: today,
-      time: "09:15",
-      owner: "Alex",
-      notes: "Confirm wind limits before launch.",
-    },
-    {
-      kind: "test",
-      title: "Battery thermal cycle",
-      date: today,
-      time: "14:00",
-      owner: "Priya",
-      notes: "Lab 2. Bring the spare pack.",
-    },
-    {
-      kind: "flight",
-      title: "North range survey",
-      date: addDays(today, 1),
-      time: "08:30",
-      owner: "Sam",
-      notes: "",
-    },
-    {
-      kind: "test",
-      title: "Radio link drop",
-      date: addDays(today, 1),
-      time: "11:00",
-      owner: "Jordan",
-      notes: "Needs two people on the radios.",
-    },
-    {
-      kind: "flight",
-      title: "Customer demo hop",
-      date: addDays(today, 2),
-      time: "10:00",
-      owner: "Riley",
-      notes: "Hold if weather is below minimums.",
-    },
-    {
-      kind: "test",
-      title: "Ground station failover",
-      date: addDays(today, 4),
-      time: "13:30",
-      owner: "Chris",
-      notes: "",
-    },
-  ];
-
-  return samples.map((sample) => ({
-    ...sample,
-    id: randomUUID(),
-    example: true,
-    createdAt,
-  }));
+function seedEntries(): Entry[] {
+  return [];
 }
 
 async function readFileShape(): Promise<FileShape> {
