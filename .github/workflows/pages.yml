@@ -45,6 +45,8 @@ jobs:
           </body>
           </html>
           EOF
+      - name: Keep earlier page files available
+        run: cp -an legacy-pages/. .next-hosted/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .next-hosted
