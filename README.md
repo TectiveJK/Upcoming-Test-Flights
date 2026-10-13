@@ -16,20 +16,6 @@ People who already have the page open see an add or a removal within a few secon
 
 [https://tectivejk.github.io/Upcoming-Test-Flights/](https://tectivejk.github.io/Upcoming-Test-Flights/) opens the same board.
 
-## Thursday 15 October 2026
-
-The sample entries are off the shared board. Thursday is the current plan:
-
-| Time | Type | What | Note |
-| --- | --- | --- | --- |
-| 08:00 | Flight | TALON with ESS and other parties | Start early. |
-| 10:00 | Flight | ReLION | Will drop by. |
-| 11:30 | Test | Arctus motor flight test | Stationary, with a fully charged battery. |
-| 13:30 | Test | Video of our own drone at about 700 m | With specific commands. |
-| 15:30 | Test | GNSS-denied flight tests with fiducial | |
-
-Clock times were added so the day stays in this order, with TALON first. The live board is the list the team should use. A private copy started with `npm run dev` begins empty and does not load these entries.
-
 ## Install it on a phone
 
 Use the live link above. Do not install from an app store.
