@@ -2,25 +2,25 @@
 
 A shared board for the flights and tests planned over the next few days. Open it, see what is coming up, add anything the team should not forget, and remove an entry when it is finished.
 
-Everyone who can open the page uses the same list. There are no accounts. Share the link only with the team: anyone who has it can add and remove entries.
+Everyone who opens the page uses the same list. There are no accounts. Share the link only with the team: anyone who has it can add and remove entries.
 
 ## Shared link
 
-The board that is running now is here:
+Open the live board here and send this address to the team:
 
-**https://volt-wild-modems-watched.trycloudflare.com**
+[https://volt-wild-modems-watched.trycloudflare.com](https://volt-wild-modems-watched.trycloudflare.com)
 
-Send that address to the team. People who already have it open see an add or a removal immediately. A **Live** mark under Planned means the page is connected.
+People who already have that page open see an add or a removal immediately. A **Live** mark under Planned means the page is connected.
 
-The link stays up while this copy of the board is running. It is one shared list, not a separate list on each phone.
+The link stays up while this copy of the board is running. Phones and computers that open it share one list.
 
 ## Install it on a phone
 
-Use the shared link above. The phone does not need a separate app store install.
+Use the shared link above. Do not install from an app store, and do not use a localhost address on the phone.
 
 ### iPhone
 
-1. Open the link in **Safari**. If it opened inside Mail or another app, tap the compass icon or choose Open in Safari.
+1. Open the link in **Safari**. If it opened inside Mail or another app, choose Open in Safari.
 2. Tap the **Share** button (the square with an arrow).
 3. Scroll the share sheet and tap **Add to Home Screen**.
 4. Leave the name as Flights & tests, then tap **Add**.
@@ -35,6 +35,8 @@ The icon appears on the home screen. Open it from there. It uses the same live b
 4. Confirm.
 
 The icon appears on the home screen or in the app list. Open it from there.
+
+The same install steps are at the bottom of the board, under **Keep it on your phone**.
 
 ## Use the board
 
@@ -64,7 +66,7 @@ npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:4317](http://127.0.0.1:4317).
+Open [http://127.0.0.1:4317](http://127.0.0.1:4317). That address works on the computer running the app. It is not the link to send to other people.
 
 To run the production build:
 
@@ -73,7 +75,7 @@ npm run build
 npm start
 ```
 
-That serves the same address. Use one running copy for the whole team. Phones and laptops that open it share that copy.
+That serves the same local address. Use one running copy for the whole team. Phones and laptops that open the shared link above share that copy.
 
 ## How sharing works
 
