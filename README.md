@@ -4,60 +4,21 @@ A shared board for the flights and tests planned over the next few days. Open it
 
 Everyone who opens the page uses the same list. There are no accounts. Share the link only with the team: anyone who has it can add and remove entries.
 
-## Keep the board up
+## Live link
 
-One computer runs the board. That computer stays powered on. Phones and laptops only open the page, and they all share the list on that computer.
+Open the board here and send this address to the team:
 
-The link to share is that computer’s address, on port 4317:
+[https://extendsclass.com/api/json-storage/bin/ecafdcc](https://extendsclass.com/api/json-storage/bin/ecafdcc)
 
-`http://<that-computer>:4317`
+This address stays online. It does not depend on a laptop, an office PC, or this coding session. Phones and computers that open it share one list, saved on the web.
 
-That address stays up while the computer is on. After you enable the service below, a reboot starts the board again on the same address.
+People who already have the page open see an add or a removal within a few seconds. A **Live** mark under Planned means the page is connected.
 
-On the computer that will host the board (Node.js 20 or newer, and `npm` on the system path):
-
-```bash
-sudo mkdir -p /opt/upcoming-flights
-sudo chown "$USER" /opt/upcoming-flights
-git clone https://github.com/TectiveJK/Upcoming-Test-Flights.git /opt/upcoming-flights
-cd /opt/upcoming-flights
-npm install
-npm run build
-```
-
-Set `User=` in `deploy/upcoming-flights.service` to the output of `whoami`, then enable the service:
-
-```bash
-sudo cp deploy/upcoming-flights.service /etc/systemd/system/upcoming-flights.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now upcoming-flights
-```
-
-From another machine on the same network, open `http://<that-computer>:4317`. Send that address to the team. If other machines cannot open it, allow TCP port 4317 on the host firewall.
-
-People away from the office need a company hostname that points at this computer. The board listens on port 4317.
-
-Check that it is running:
-
-```bash
-systemctl status upcoming-flights
-```
-
-The list is stored in `/opt/upcoming-flights/data/entries.json` on that computer. Run this one copy. A second copy keeps a separate list.
-
-## Preview address
-
-This session also publishes a temporary address:
-
-[https://volt-wild-modems-watched.trycloudflare.com](https://volt-wild-modems-watched.trycloudflare.com)
-
-It is open while this session’s computer is still running. When that computer stops, Cloudflare drops the name. The same name cannot be started again. Use the always-on computer’s address as the link the team keeps.
-
-People who already have the page open see an add or a removal immediately. A **Live** mark under Planned means the page is connected.
+[https://tectivejk.github.io/Upcoming-Test-Flights/](https://tectivejk.github.io/Upcoming-Test-Flights/) opens the same board.
 
 ## Install it on a phone
 
-Use the always-on address from above. Do not install from an app store.
+Use the live link above. Do not install from an app store.
 
 ### iPhone
 
@@ -86,9 +47,9 @@ The same install steps are at the bottom of the board, under **Keep it on your p
 3. Add a flight or test with a name, date, and time. Who and a short note are optional.
 4. Remove an entry when it is done, cancelled, or was only an example. Removal asks you to confirm first.
 
-While the page is open it stays connected. When anyone adds or removes an entry, every open board updates immediately. If the connection drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
+While the page is open it keeps checking for changes. When anyone adds or removes an entry, every open board updates. If the connection drops, the page keeps checking and reconnects on its own. **Refresh** loads the latest list immediately.
 
-The first time the app starts, it adds a few example entries so the layout is easy to read. Remove them before using the board for real plans.
+The board starts with a few example entries so the layout is easy to read. Remove them before using it for real plans.
 
 Days are grouped like this:
 
@@ -98,33 +59,27 @@ Days are grouped like this:
 
 Times use a 24-hour clock on the list.
 
-## Run a copy on your own computer
+## Run a private copy
 
-Requires Node.js 20 or newer.
+Requires Node.js 20 or newer. A copy you start yourself has its own list. The team link above is the shared one.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:4317](http://127.0.0.1:4317). That address works on the computer running the app. It is a private copy unless other people open that same computer’s address.
+Open [http://127.0.0.1:4317](http://127.0.0.1:4317).
 
-To run the production build in the foreground:
+To run the production build on that computer:
 
 ```bash
 npm run build
 npm start
 ```
 
-For the link the team keeps, use [Keep the board up](#keep-the-board-up) so the process comes back after a reboot.
-
 ## How sharing works
 
-Entries are stored in `data/entries.json` on the computer that runs the app. That file is created automatically and is not part of the git history.
-
-Anyone who opens this app talks to that one file. Add and remove update it for the whole team, including people who already have the page open.
-
-If each person runs their own copy, each copy has its own list.
+The live link stores the list online. Add and remove update that list for the whole team, including people who already have the page open.
 
 There is no login. Treat the address like an internal tool.
 
@@ -132,7 +87,8 @@ There is no login. Treat the address like an internal tool.
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Start the board for local use on port 4317 |
+| `npm run dev` | Start a private copy on port 4317 |
 | `npm run build` | Build the production app |
-| `npm start` | Serve the production build on port 4317 |
+| `npm run build:hosted` | Build the shared page and publish it to the live link |
+| `npm start` | Serve a private production copy on port 4317 |
 | `npm run lint` | Run the linter |

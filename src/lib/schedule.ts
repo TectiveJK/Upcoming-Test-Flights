@@ -125,3 +125,53 @@ export function groupEntries(entries: Entry[], now = new Date()) {
 
   return { today, earlier, soon, later, next };
 }
+
+export type NewEntryInput = {
+  kind: Kind;
+  title: string;
+  date: string;
+  time: string;
+  owner: string;
+  notes: string;
+};
+
+export function validateNewEntry(
+  input: Partial<Record<keyof NewEntryInput, unknown>>,
+  now = new Date(),
+): { ok: true; value: NewEntryInput } | { ok: false; error: string } {
+  if (input.kind !== "flight" && input.kind !== "test") {
+    return { ok: false, error: "Choose Flight or Test." };
+  }
+
+  const title = typeof input.title === "string" ? input.title.trim() : "";
+  if (!title) return { ok: false, error: "Add a name for the flight or test." };
+  if (title.length > 80) {
+    return { ok: false, error: "Keep the name under 80 characters." };
+  }
+
+  const date = typeof input.date === "string" ? input.date : "";
+  if (!isValidDate(date)) return { ok: false, error: "Choose a valid date." };
+  const year = Number(date.slice(0, 4));
+  const thisYear = now.getFullYear();
+  if (year < thisYear - 1 || year > thisYear + 3) {
+    return { ok: false, error: "Choose a date within the next few years." };
+  }
+
+  const time = typeof input.time === "string" ? input.time : "";
+  if (!isValidTime(time)) return { ok: false, error: "Choose a valid time." };
+
+  const owner = typeof input.owner === "string" ? input.owner.trim() : "";
+  if (owner.length > 60) {
+    return { ok: false, error: "Keep the name under 60 characters." };
+  }
+
+  const notes = typeof input.notes === "string" ? input.notes.trim() : "";
+  if (notes.length > 240) {
+    return { ok: false, error: "Keep the note under 240 characters." };
+  }
+
+  return {
+    ok: true,
+    value: { kind: input.kind, title, date, time, owner, notes },
+  };
+}

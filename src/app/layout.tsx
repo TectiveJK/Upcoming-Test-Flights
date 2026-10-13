@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   description:
     "A shared board for the flights and tests planned over the next few days.",
   applicationName: "Flights & tests",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     title: "Flights & tests",

@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-hosted/
 /out/
 
 # production
@@ -39,6 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# cloudflare local state
+.wrangler/
 
 # shared board data — created on the machine that runs the app
 /data/entries.json

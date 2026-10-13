@@ -11,12 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { mutateRemoteBoard, readRemoteBoard, remoteBoardUrl } from "@/lib/remote-board";
 import {
   addDays,
   formatDateInput,
   groupEntries,
   hasPassed,
   kindLabel,
+  validateNewEntry,
   type DayGroup,
   type Entry,
   type Kind,
@@ -60,6 +62,11 @@ export function ScheduleBoard() {
   const refresh = useCallback(
     async (mode: "initial" | "poll") => {
       try {
+        if (remoteBoardUrl()) {
+          const board = await readRemoteBoard();
+          if (busy.current === 0) applyEntries(board.entries, false);
+          return;
+        }
         const response = await fetch("/api/entries", { cache: "no-store" });
         const body = (await response.json()) as {
           entries?: Entry[];
@@ -104,6 +111,40 @@ export function ScheduleBoard() {
   }, [refresh]);
 
   useEffect(() => {
+    if (remoteBoardUrl()) {
+      let stopped = false;
+      let timer = 0;
+
+      const tick = async () => {
+        if (stopped || document.visibilityState === "hidden") return;
+        try {
+          const board = await readRemoteBoard();
+          if (busy.current === 0) applyEntries(board.entries, false);
+          setConnected(true);
+        } catch {
+          if (!stopped) setConnected(false);
+        }
+      };
+
+      const loop = () => {
+        void tick().finally(() => {
+          if (!stopped) timer = window.setTimeout(loop, 4000);
+        });
+      };
+
+      const onVisible = () => {
+        if (document.visibilityState === "visible") void tick();
+      };
+
+      loop();
+      document.addEventListener("visibilitychange", onVisible);
+      return () => {
+        stopped = true;
+        window.clearTimeout(timer);
+        document.removeEventListener("visibilitychange", onVisible);
+      };
+    }
+
     let stopped = false;
     let after = 0;
     const controller = new AbortController();
@@ -150,6 +191,28 @@ export function ScheduleBoard() {
     setSaving(true);
     busy.current += 1;
     try {
+      if (remoteBoardUrl()) {
+        const result = validateNewEntry({ kind, title, date, time, owner, notes });
+        if (!result.ok) {
+          setFormError(result.error);
+          return;
+        }
+        const entry: Entry = {
+          ...result.value,
+          id: crypto.randomUUID(),
+          example: false,
+          createdAt: new Date().toISOString(),
+        };
+        const entries = await mutateRemoteBoard((current) =>
+          current.some((item) => item.id === entry.id) ? current : [...current, entry],
+        );
+        applyEntries(entries, false);
+        setTitle("");
+        setNotes("");
+        setStatusMessage(`${entry.title} added for everyone.`);
+        titleRef.current?.focus();
+        return;
+      }
       const response = await fetch("/api/entries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -185,6 +248,16 @@ export function ScheduleBoard() {
     setRemovingId(entry.id);
     busy.current += 1;
     try {
+      if (remoteBoardUrl()) {
+        const entries = await mutateRemoteBoard((current) =>
+          current.filter((item) => item.id !== entry.id),
+        );
+        applyEntries(entries, false);
+        setPendingRemoveId(null);
+        setStatusMessage(`${entry.title} removed for everyone.`);
+        listRef.current?.focus();
+        return;
+      }
       const response = await fetch(`/api/entries/${entry.id}`, {
         method: "DELETE",
       });
