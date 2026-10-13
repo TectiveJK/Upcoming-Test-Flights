@@ -15,11 +15,18 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_PATH = path.join(DATA_DIR, "entries.json");
 
 type FileShape = { entries: Entry[] };
-type Listener = (entries: Entry[]) => void;
+type BoardSnapshot = { entries: Entry[]; version: number };
+type Waiter = {
+  after: number;
+  resolve: (snapshot: BoardSnapshot) => void;
+};
 
 type LiveHub = {
   chain: Promise<unknown>;
-  listeners: Set<Listener>;
+  version: number;
+  latest: Entry[] | null;
+  primed: boolean;
+  waiters: Set<Waiter>;
   watcherStarted: boolean;
   watcher: FSWatcher | null;
   watchTimer: ReturnType<typeof setTimeout> | null;
@@ -27,7 +34,10 @@ type LiveHub = {
 
 const hub: LiveHub = ((globalThis as { __flightBoardHub?: LiveHub }).__flightBoardHub ??= {
   chain: Promise.resolve(),
-  listeners: new Set(),
+  version: 0,
+  latest: null,
+  primed: false,
+  waiters: new Set(),
   watcherStarted: false,
   watcher: null,
   watchTimer: null,
@@ -44,8 +54,15 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 
 function publish(entries: Entry[]) {
   const snapshot = entries.map((entry) => ({ ...entry }));
-  for (const listener of hub.listeners) {
-    listener(snapshot);
+  hub.latest = snapshot;
+  hub.primed = true;
+  hub.version += 1;
+  const update = { entries: snapshot, version: hub.version };
+  for (const waiter of hub.waiters) {
+    if (hub.version > waiter.after) {
+      hub.waiters.delete(waiter);
+      waiter.resolve(update);
+    }
   }
 }
 
@@ -65,12 +82,50 @@ function ensureWatcher() {
   });
 }
 
-export function subscribe(listener: Listener): () => void {
+export async function waitForBoard(
+  after: number,
+  signal: AbortSignal,
+): Promise<BoardSnapshot> {
   ensureWatcher();
-  hub.listeners.add(listener);
-  return () => {
-    hub.listeners.delete(listener);
-  };
+  if (!hub.primed || !hub.latest) {
+    hub.latest = (await listEntries()).map((entry) => ({ ...entry }));
+    hub.primed = true;
+    if (hub.version < 1) hub.version = 1;
+  }
+
+  if (hub.version > after) {
+    return { entries: hub.latest, version: hub.version };
+  }
+
+  return new Promise((resolve, reject) => {
+    const waiter: Waiter = {
+      after,
+      resolve: (snapshot) => {
+        windowClear();
+        resolve(snapshot);
+      },
+    };
+    const timer = setTimeout(() => {
+      hub.waiters.delete(waiter);
+      signal.removeEventListener("abort", onAbort);
+      resolve({ entries: hub.latest ?? [], version: hub.version });
+    }, 20000);
+    const windowClear = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", onAbort);
+    };
+    const onAbort = () => {
+      clearTimeout(timer);
+      hub.waiters.delete(waiter);
+      reject(new Error("The live request was closed."));
+    };
+    if (signal.aborted) {
+      onAbort();
+      return;
+    }
+    signal.addEventListener("abort", onAbort);
+    hub.waiters.add(waiter);
+  });
 }
 
 function isKind(value: unknown): value is Kind {

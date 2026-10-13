@@ -104,58 +104,44 @@ export function ScheduleBoard() {
   }, [refresh]);
 
   useEffect(() => {
-    let source: EventSource | null = null;
-    let poll: number | null = null;
+    let stopped = false;
+    let after = 0;
+    const controller = new AbortController();
 
-    const stopPoll = () => {
-      if (poll !== null) {
-        window.clearInterval(poll);
-        poll = null;
+    const follow = async () => {
+      while (!stopped) {
+        try {
+          const response = await fetch(`/api/live?after=${after}`, {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+          if (response.status === 204) continue;
+          if (!response.ok) throw new Error("The live connection failed.");
+          const body = (await response.json()) as {
+            entries?: Entry[];
+            version?: number;
+          };
+          if (!body.entries || typeof body.version !== "number") {
+            throw new Error("The live connection failed.");
+          }
+          after = body.version;
+          applyEntries(body.entries, false);
+          setConnected(true);
+        } catch {
+          if (stopped || controller.signal.aborted) return;
+          setConnected(false);
+          await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        }
       }
     };
 
-    const startPoll = () => {
-      if (poll !== null) return;
-      poll = window.setInterval(() => {
-        void refresh("poll");
-      }, 4000);
-    };
-
-    source = new EventSource("/api/live");
-    source.onopen = () => {
-      setConnected(true);
-      stopPoll();
-    };
-    source.onmessage = (event) => {
-      try {
-        const body = JSON.parse(event.data) as { entries?: Entry[] };
-        if (!body.entries) return;
-        applyEntries(body.entries, false);
-        setConnected(true);
-        stopPoll();
-      } catch {
-        setConnected(false);
-        startPoll();
-      }
-    };
-    source.onerror = () => {
-      setConnected(false);
-      startPoll();
-    };
-
-    const onVisible = () => {
-      if (document.visibilityState === "visible" && source?.readyState !== EventSource.OPEN) {
-        void refresh("poll");
-      }
-    };
-    document.addEventListener("visibilitychange", onVisible);
+    void follow();
 
     return () => {
-      stopPoll();
-      source?.close();
-      document.removeEventListener("visibilitychange", onVisible);
+      stopped = true;
+      controller.abort();
     };
-  }, [applyEntries, refresh]);
+  }, [applyEntries]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

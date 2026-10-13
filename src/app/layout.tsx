@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { RegisterServiceWorker } from "@/components/register-service-worker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,6 +17,18 @@ export const metadata: Metadata = {
   title: "Upcoming flights & tests",
   description:
     "A shared board for the flights and tests planned over the next few days.",
+  applicationName: "Flights & tests",
+  appleWebApp: {
+    capable: true,
+    title: "Flights & tests",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#23483c",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -24,8 +37,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body className="min-h-full flex flex-col">
         <div className="h-1 bg-primary" aria-hidden="true" />
+        <RegisterServiceWorker />
         {children}
       </body>
     </html>

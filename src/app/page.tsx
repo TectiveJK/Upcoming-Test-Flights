@@ -17,6 +17,33 @@ export default function HomePage() {
         </p>
       </header>
       <ScheduleBoard />
+      <section className="mt-10 border-t border-border pt-6" aria-labelledby="phone-install">
+        <h2 id="phone-install" className="text-lg font-semibold">
+          Keep it on your phone
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Open this page in the phone&apos;s browser, then add it to the home
+          screen. It opens like an app and stays on the same live board.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <h3 className="text-sm font-medium">iPhone</h3>
+            <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
+              <li>Open this link in Safari.</li>
+              <li>Tap the Share button.</li>
+              <li>Tap Add to Home Screen, then Add.</li>
+            </ol>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium">Android</h3>
+            <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
+              <li>Open this link in Chrome.</li>
+              <li>Tap the menu, the three dots.</li>
+              <li>Tap Install app, or Add to Home screen.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
