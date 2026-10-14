@@ -28,23 +28,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:hosted
-      - name: Point GitHub Pages at the live board
-        run: |
-          cat > .next-hosted/index.html << 'EOF'
-          <!doctype html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <meta http-equiv="refresh" content="0;url=https://extendsclass.com/api/json-storage/bin/ecafdcc">
-            <title>Upcoming flights & tests</title>
-            <link rel="canonical" href="https://extendsclass.com/api/json-storage/bin/ecafdcc">
-          </head>
-          <body>
-            <p><a href="https://extendsclass.com/api/json-storage/bin/ecafdcc">Open the live board</a>.</p>
-          </body>
-          </html>
-          EOF
       - name: Keep earlier page files available
         run: cp -an legacy-pages/. .next-hosted/
       - uses: actions/upload-pages-artifact@v3

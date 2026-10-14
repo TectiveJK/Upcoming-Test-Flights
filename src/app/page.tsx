@@ -1,3 +1,4 @@
+import { AlertToggle } from "@/components/alert-toggle";
 import { ScheduleBoard } from "@/components/schedule-board";
 
 export default function HomePage() {
@@ -13,7 +14,8 @@ export default function HomePage() {
         <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
           See what is planned, when it happens, and what is coming up next.
           Anyone on the team can add a flight or test, or remove one when it
-          is finished. Every open board updates at the same time.
+          is finished. Every open board updates at the same time. A phone with
+          alerts on is notified when someone adds a plan, even if it is locked.
         </p>
       </header>
       <ScheduleBoard />
@@ -21,25 +23,29 @@ export default function HomePage() {
         <h2 id="phone-install" className="text-lg font-semibold">
           Keep it on your phone
         </h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Open this page in the phone&apos;s browser, then add it to the home
-          screen. It opens like an app and stays on the same live board.
+        <div className="mt-3">
+          <AlertToggle />
+        </div>
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          Install the shared board from this page, not from an app store. The
+          icon opens the same live list.
         </p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <h3 className="text-sm font-medium">iPhone</h3>
             <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
-              <li>Open this link in Safari.</li>
-              <li>Tap the Share button.</li>
-              <li>Tap Add to Home Screen, then Add.</li>
+              <li>Open this page in Safari.</li>
+              <li>Tap Share, then Add to Home Screen.</li>
+              <li>Open the new Flights &amp; tests icon.</li>
+              <li>Tap Turn on alerts and allow notifications.</li>
             </ol>
           </div>
           <div>
             <h3 className="text-sm font-medium">Android</h3>
             <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
-              <li>Open this link in Chrome.</li>
-              <li>Tap the menu, the three dots.</li>
-              <li>Tap Install app, or Add to Home screen.</li>
+              <li>Open this page in Chrome.</li>
+              <li>Tap Turn on alerts and allow notifications.</li>
+              <li>Optional: menu, then Install app or Add to Home screen.</li>
             </ol>
           </div>
         </div>

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { notifyAdded } from "@/lib/alerts";
 import { mutateRemoteBoard, readRemoteBoard, remoteBoardUrl } from "@/lib/remote-board";
 import {
   addDays,
@@ -213,6 +214,7 @@ export function ScheduleBoard() {
         setNotes("");
         setStatusMessage(`${entry.title} added for everyone.`);
         titleRef.current?.focus();
+        void notifyAdded(entry).catch(() => undefined);
         return;
       }
       const response = await fetch("/api/entries", {
@@ -444,7 +446,8 @@ export function ScheduleBoard() {
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
             What, date, and time are required. Who and note are optional. It
-            shows up on this board for the whole team.
+            shows up on this board for the whole team. Phones with alerts on
+            are notified, even when they are locked.
           </p>
         </div>
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>

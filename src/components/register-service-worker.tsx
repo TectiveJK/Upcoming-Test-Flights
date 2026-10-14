@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { serviceWorkerScope, serviceWorkerUrl } from "@/lib/push-config";
 
 export function RegisterServiceWorker() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
-    const host = window.location.hostname;
-    if (host === "localhost" || host === "127.0.0.1" || host.endsWith("extendsclass.com")) return;
-    void navigator.serviceWorker.register("/sw.js");
+    if (window.location.hostname !== "tectivejk.github.io") return;
+    void navigator.serviceWorker.register(serviceWorkerUrl, { scope: serviceWorkerScope });
   }, []);
 
   return null;

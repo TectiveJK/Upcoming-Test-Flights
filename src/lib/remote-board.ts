@@ -1,3 +1,4 @@
+import { readDocument, writeDocument } from "@/lib/document-store";
 import type { Entry } from "@/lib/schedule";
 
 export function remoteBoardUrl(): string {
@@ -13,12 +14,7 @@ function boardUrl(): string {
 }
 
 export async function readRemoteBoard(): Promise<BoardFile> {
-  const response = await fetch(`${boardUrl()}?t=${Date.now()}`, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!response.ok) throw new Error("The board could not be loaded.");
-  const body = (await response.json()) as Partial<BoardFile>;
+  const body = await readDocument<Partial<BoardFile>>(boardUrl());
   if (!body || !Array.isArray(body.entries)) {
     throw new Error("The board could not be loaded.");
   }
@@ -32,12 +28,12 @@ export async function mutateRemoteBoard(
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const current = await readRemoteBoard();
     const entries = change(current.entries.map((entry) => ({ ...entry })));
-    const response = await fetch(boardUrl(), {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ entries, version: current.version + 1 }),
-    });
-    if (!response.ok) {
+    try {
+      await writeDocument(
+        boardUrl(),
+        JSON.stringify({ entries, version: current.version + 1 }),
+      );
+    } catch {
       lastError = new Error("The board could not be saved.");
       continue;
     }

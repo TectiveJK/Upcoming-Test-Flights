@@ -56,12 +56,4 @@ html = html.replaceAll(
   'src="https://tectivejk.github.io/Upcoming-Test-Flights/',
 );
 await writeFile(htmlPath, html);
-const published = await fetch(pageUrl, {
-  method: "PUT",
-  headers: { "content-type": "text/html" },
-  body: html,
-});
-if (!published.ok) {
-  throw new Error(`The live page was not updated (${published.status}).`);
-}
-console.log(`Live page updated: ${pageUrl}`);
+console.log(`Hosted page built. The old link is ${pageUrl}.`);

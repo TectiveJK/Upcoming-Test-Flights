@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     "A shared board for the flights and tests planned over the next few days.",
   applicationName: "Flights & tests",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     title: "Flights & tests",
