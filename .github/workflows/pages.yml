@@ -35,3 +35,5 @@ jobs:
           path: .next-hosted
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Point the previous link at this board
+        run: node scripts/publish-redirect.mjs

@@ -55,5 +55,9 @@ html = html.replaceAll(
   'src="/',
   'src="https://tectivejk.github.io/Upcoming-Test-Flights/',
 );
+html = html.replaceAll(
+  '\\"/',
+  '\\"https://tectivejk.github.io/Upcoming-Test-Flights/',
+);
 await writeFile(htmlPath, html);
 console.log(`Hosted page built. The old link is ${pageUrl}.`);

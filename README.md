@@ -14,7 +14,7 @@ This address stays online. It does not depend on a laptop, an office PC, or this
 
 People who already have the page open see an add, an edit, or a removal within a few seconds. A **Live** mark under Planned means the page is connected.
 
-[https://extendsclass.com/api/json-storage/bin/ecafdcc](https://extendsclass.com/api/json-storage/bin/ecafdcc) still shows the same list. Install the board and turn on alerts from the GitHub Pages link above.
+[https://extendsclass.com/api/json-storage/bin/ecafdcc](https://extendsclass.com/api/json-storage/bin/ecafdcc) opens the same board.
 
 ## Alerts on a locked phone
 
